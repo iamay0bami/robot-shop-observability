@@ -1,24 +1,12 @@
 {
   "name": "Robot Shop Observability",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-      "version": "latest",
-      "helm": "latest",
-      "minikube": "none"
-    },
-    "ghcr.io/devcontainers/features/go:1": {
-      "version": "1.22"
-    }
-  },
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
   "forwardPorts": [8080, 3000, 16686, 9090, 9003],
   "portsAttributes": {
     "8080": { "label": "Robot Shop",  "onAutoForward": "notify" },
     "3000": { "label": "Grafana",     "onAutoForward": "notify" },
-    "16686": { "label": "Jaeger",     "onAutoForward": "openBrowser" },
+    "16686": { "label": "Jaeger",      "onAutoForward": "openBrowser" },
     "9090": { "label": "Prometheus",  "onAutoForward": "notify" },
     "9003": { "label": "OpenCost",    "onAutoForward": "notify" }
-  },
-  "remoteUser": "vscode"
+  }
 }
