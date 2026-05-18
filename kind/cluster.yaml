@@ -1,0 +1,23 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: robot-shop
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 30686
+        hostPort: 16686
+        protocol: TCP
+      - containerPort: 30300
+        hostPort: 3000
+        protocol: TCP
+      - containerPort: 30900
+        hostPort: 9090
+        protocol: TCP
+      - containerPort: 30910
+        hostPort: 9003
+        protocol: TCP
+  - role: worker
+  - role: worker
