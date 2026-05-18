@@ -1,0 +1,31 @@
+provisionDataStore:
+  cassandra: false
+  elasticsearch: false
+  kafka: false
+
+allInOne:
+  enabled: true
+  extraEnv:
+    - name: COLLECTOR_OTLP_ENABLED
+      value: "true"
+    - name: SPAN_STORAGE_TYPE
+      value: "memory"
+    - name: MEMORY_MAX_TRACES
+      value: "50000"
+  service:
+    type: NodePort
+    ports:
+      - port: 16686
+        targetPort: 16686
+        nodePort: 30686
+        name: http-query
+      - port: 4317
+        targetPort: 4317
+        name: grpc-collector
+
+collector:
+  enabled: false
+query:
+  enabled: false
+agent:
+  enabled: false
