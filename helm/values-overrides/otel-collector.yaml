@@ -11,6 +11,14 @@ config:
           endpoint: "0.0.0.0:4317"
         http:
           endpoint: "0.0.0.0:4318"
+    jaeger:
+      protocols:
+        thrift_compact:
+          endpoint: "0.0.0.0:6831"
+        thrift_http:
+          endpoint: "0.0.0.0:14268"
+        grpc:
+          endpoint: "0.0.0.0:14250"
 
   processors:
     batch:
@@ -19,7 +27,7 @@ config:
 
   exporters:
     otlp/jaeger:
-      endpoint: "jaeger-collector.tracing.svc.cluster.local:4317"
+      endpoint: "jaeger.tracing.svc.cluster.local:4317"
       tls:
         insecure: true
     debug:
@@ -28,7 +36,7 @@ config:
   service:
     pipelines:
       traces:
-        receivers:  [otlp]
+        receivers:  [otlp, jaeger]
         processors: [batch]
         exporters:  [otlp/jaeger, debug]
 
@@ -42,4 +50,19 @@ ports:
     enabled: true
     containerPort: 4318
     servicePort: 4318
+    protocol: TCP
+  jaeger-compact:
+    enabled: true
+    containerPort: 6831
+    servicePort: 6831
+    protocol: UDP
+  jaeger-thrift:
+    enabled: true
+    containerPort: 14268
+    servicePort: 14268
+    protocol: TCP
+  jaeger-grpc:
+    enabled: true
+    containerPort: 14250
+    servicePort: 14250
     protocol: TCP

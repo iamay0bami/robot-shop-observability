@@ -1,0 +1,63 @@
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    enableRemoteWriteReceiver: true
+    scrapeInterval: "15s"
+    evaluationInterval: "15s"
+    retention: 7d
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+  service:
+    type: NodePort
+    nodePort: 30900
+
+alertmanager:
+  service:
+    type: ClusterIP
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'namespace']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'default-webhook'
+      routes:
+        - matchers:
+            - alertname = Http500Spike
+          receiver: 'healing-webhook'
+    receivers:
+      - name: 'default-webhook'
+        webhook_configs:
+          - url: 'http://webhook-receiver.monitoring.svc.cluster.local:9091/alert'
+            send_resolved: true
+      - name: 'healing-webhook'
+        webhook_configs:
+          - url: 'http://webhook-receiver.monitoring.svc.cluster.local:9091/heal'
+            send_resolved: false
+
+grafana:
+  adminPassword: "prom-operator"
+  service:
+    type: NodePort
+    nodePort: 30300
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Jaeger
+      type: jaeger
+      url: http://jaeger.tracing.svc.cluster.local:16686
+      access: proxy
+      isDefault: false

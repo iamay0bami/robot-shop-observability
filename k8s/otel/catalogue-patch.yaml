@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+  namespace: robot-shop
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: install-otel-deps
+          image: node:14-alpine
+          command:
+            - sh
+            - -c
+            - |
+              npm install --prefix /otel-deps \
+                @opentelemetry/sdk-node@0.30.0 \
+                @opentelemetry/exporter-trace-otlp-grpc@0.30.0 \
+                @opentelemetry/instrumentation-http@0.30.0 \
+                @opentelemetry/instrumentation-express@0.28.0 \
+                @opentelemetry/instrumentation-mongodb@0.28.0 \
+                @opentelemetry/resources@1.3.0 \
+                @opentelemetry/semantic-conventions@1.3.0
+          volumeMounts:
+            - name: otel-deps
+              mountPath: /otel-deps
+      containers:
+        - name: catalogue
+          volumeMounts:
+            - name: server-js
+              mountPath: /opt/server/server.js
+              subPath: server.js
+            - name: otel-deps
+              mountPath: /otel-deps
+      volumes:
+        - name: server-js
+          configMap:
+            name: catalogue-server-js
+        - name: otel-deps
+          emptyDir: {}
