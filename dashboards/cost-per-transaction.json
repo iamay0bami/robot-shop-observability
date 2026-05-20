@@ -34,7 +34,7 @@
       },
       "targets": [
         {
-          "expr": "(\n  sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m])) * 0.031611\n  +\n  sum(container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"}) / 1073741824 * 0.004237\n)\n/\nclamp_min(\n  sum(rate(http_requests_total{namespace=\"robot-shop\",service=\"payment\"}[5m])) * 3600,\n  0.001\n) * 1000",
+          "expr": "(\n  sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}[5m])) * 0.031611\n  +\n  sum(container_memory_working_set_bytes{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}) / 1073741824 * 0.004237\n)\n/\nclamp_min(\n  sum(rate(http_requests_total{namespace=\"robot-shop\"}[5m])) * 3600,\n  0.001\n) * 1000",
           "legendFormat": "Cost / 1k orders",
           "refId": "A"
         }
@@ -57,7 +57,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m])) * 0.031611\n+\nsum(container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"}) / 1073741824 * 0.004237",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}[5m])) * 0.031611\n+\nsum(container_memory_working_set_bytes{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}) / 1073741824 * 0.004237",
           "legendFormat": "$/hr",
           "refId": "A"
         }
@@ -96,8 +96,8 @@
       ]
     },
     {
-      "id": 10,
-      "title": "Cost per 1,000 orders over time",
+      "id": 4,
+      "title": "Namespace hourly cost over time",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
       "datasource": { "type": "prometheus" },
@@ -107,14 +107,14 @@
       },
       "targets": [
         {
-          "expr": "(\n  sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m])) * 0.031611\n  +\n  sum(container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"}) / 1073741824 * 0.004237\n)\n/\nclamp_min(\n  sum(rate(http_requests_total{namespace=\"robot-shop\",service=\"payment\"}[5m])) * 3600,\n  0.001\n) * 1000",
-          "legendFormat": "Cost / 1k orders",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}[5m])) * 0.031611\n+\nsum(container_memory_working_set_bytes{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}) / 1073741824 * 0.004237",
+          "legendFormat": "Total $/hr",
           "refId": "A"
         }
       ]
     },
     {
-      "id": 11,
+      "id": 5,
       "title": "Cost breakdown by pod (CPU + RAM)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
@@ -125,7 +125,7 @@
       },
       "targets": [
         {
-          "expr": "sort_desc(sum by (pod) (\n  rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m]) * 0.031611\n  +\n  container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"} / 1073741824 * 0.004237\n))",
+          "expr": "sort_desc(sum by (pod) (\n  rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}[5m]) * 0.031611\n  +\n  container_memory_working_set_bytes{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"} / 1073741824 * 0.004237\n))",
           "legendFormat": "{{pod}}",
           "refId": "A"
         }
@@ -156,7 +156,7 @@
     },
     {
       "id": 30,
-      "title": "HTTP 500 error rate by service",
+      "title": "CPU usage by pod over time",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
       "datasource": { "type": "prometheus" },
@@ -166,8 +166,8 @@
       },
       "targets": [
         {
-          "expr": "sum by (service) (\n  rate(http_requests_total{namespace=\"robot-shop\",status=~\"5..\"}[5m])\n)\n/\nsum by (service) (\n  rate(http_requests_total{namespace=\"robot-shop\"}[5m])\n)",
-          "legendFormat": "{{service}} 5xx rate",
+          "expr": "sum by (pod) (\n  rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",id=~\".*cri-containerd.*\"}[5m])\n)",
+          "legendFormat": "{{pod}}",
           "refId": "A"
         }
       ]

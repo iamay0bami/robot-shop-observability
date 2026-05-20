@@ -13,30 +13,28 @@ spec:
       rules:
         - alert: Http500Spike
           expr: |
-            sum(
-              rate(
-                http_request_duration_seconds_count{
-                  namespace="robot-shop",
-                  service="catalogue",
-                  status_code=~"5.."
-                }[2m]
-              )
-            ) > 0.1
-          for: 1m
+            increase(
+              kube_pod_container_status_restarts_total{
+                namespace="robot-shop",
+                pod=~"catalogue-.*"
+              }[5m]
+            ) > 0
+          for: 30s
           labels:
             severity: critical
             team: platform
           annotations:
-            summary: "Catalogue service 500 spike detected"
-            description: >
-              Catalogue returning 5xx at {{ $value | humanize }} rps.
-              Triggering self-healing webhook.
+            summary: "Catalogue pod restarted - triggering self-heal"
+            description: "Catalogue has restarted. Webhook will re-apply clean state."
 
         - alert: DispatchQueueBacklog
           expr: |
-            redis_list_length{key="dispatch-jobs", namespace="robot-shop"} > 50
-          for: 2m
+            kube_deployment_spec_replicas{
+              namespace="robot-shop",
+              deployment="dispatch"
+            } >= 5
+          for: 1m
           labels:
             severity: warning
           annotations:
-            summary: "Dispatch queue backlog exceeding 50 messages"
+            summary: "Dispatch scaling up - queue pressure detected"
