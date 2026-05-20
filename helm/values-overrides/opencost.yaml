@@ -1,0 +1,22 @@
+opencost:
+  prometheus:
+    internal:
+      enabled: false
+    external:
+      enabled: true
+      url: "http://kube-prom-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+
+  exporter:
+    extraEnv:
+      CLOUD_PROVIDER_API_KEY: "AIzaSyD29bGxmHAVEOBYtgd8sYM2gM2ekfxQX4Q"
+      CLUSTER_PROFILE: "local"
+
+  ui:
+    enabled: true
+    service:
+      type: NodePort
+      nodePort: 30910
+
+serviceMonitor:
+  enabled: true
+  namespace: monitoring

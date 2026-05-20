@@ -1,0 +1,42 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: robot-shop-alerts
+  namespace: monitoring
+  labels:
+    prometheus: kube-prom
+    role: alert-rules
+spec:
+  groups:
+    - name: robot-shop.http
+      interval: 15s
+      rules:
+        - alert: Http500Spike
+          expr: |
+            sum(
+              rate(
+                http_request_duration_seconds_count{
+                  namespace="robot-shop",
+                  service="catalogue",
+                  status_code=~"5.."
+                }[2m]
+              )
+            ) > 0.1
+          for: 1m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "Catalogue service 500 spike detected"
+            description: >
+              Catalogue returning 5xx at {{ $value | humanize }} rps.
+              Triggering self-healing webhook.
+
+        - alert: DispatchQueueBacklog
+          expr: |
+            redis_list_length{key="dispatch-jobs", namespace="robot-shop"} > 50
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Dispatch queue backlog exceeding 50 messages"

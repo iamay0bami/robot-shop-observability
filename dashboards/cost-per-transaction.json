@@ -1,0 +1,176 @@
+{
+  "title": "Robot Shop — Cost per Transaction (FinOps)",
+  "uid": "robot-shop-finops",
+  "tags": ["robot-shop", "finops", "cost-per-transaction"],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "time": { "from": "now-3h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Cost per 1,000 Orders (current hour)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "red", "value": 0.05 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "(\n  sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m])) * 0.031611\n  +\n  sum(container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"}) / 1073741824 * 0.004237\n)\n/\nclamp_min(\n  sum(rate(http_requests_total{namespace=\"robot-shop\",service=\"payment\"}[5m])) * 3600,\n  0.001\n) * 1000",
+          "legendFormat": "Cost / 1k orders",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Robot Shop namespace hourly cost (USD)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "decimals": 4 },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m])) * 0.031611\n+\nsum(container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"}) / 1073741824 * 0.004237",
+          "legendFormat": "$/hr",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Dispatch replicas (KEDA-scaled)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "red", "value": 8 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "kube_deployment_spec_replicas{namespace=\"robot-shop\",deployment=\"dispatch\"}",
+          "legendFormat": "replicas",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Cost per 1,000 orders over time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD" },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "(\n  sum(rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m])) * 0.031611\n  +\n  sum(container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"}) / 1073741824 * 0.004237\n)\n/\nclamp_min(\n  sum(rate(http_requests_total{namespace=\"robot-shop\",service=\"payment\"}[5m])) * 3600,\n  0.001\n) * 1000",
+          "legendFormat": "Cost / 1k orders",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Cost breakdown by pod (CPU + RAM)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD" },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (pod) (\n  rate(container_cpu_usage_seconds_total{namespace=\"robot-shop\",container!=\"\"}[5m]) * 0.031611\n  +\n  container_memory_working_set_bytes{namespace=\"robot-shop\",container!=\"\"} / 1073741824 * 0.004237\n))",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Queue depth vs Dispatch replicas",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Dispatch replicas" },
+            "properties": [{ "id": "custom.axisPlacement", "value": "right" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "kube_deployment_spec_replicas{namespace=\"robot-shop\",deployment=\"dispatch\"}",
+          "legendFormat": "Dispatch replicas",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "HTTP 500 error rate by service",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit" },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum by (service) (\n  rate(http_requests_total{namespace=\"robot-shop\",status=~\"5..\"}[5m])\n)\n/\nsum by (service) (\n  rate(http_requests_total{namespace=\"robot-shop\"}[5m])\n)",
+          "legendFormat": "{{service}} 5xx rate",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
