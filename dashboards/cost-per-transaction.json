@@ -163,7 +163,7 @@
     },
     {
       "id": 20,
-      "title": "Queue depth vs Dispatch replicas",
+      "title": "Dispatch replicas over time (KEDA-scaled)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
       "datasource": { "type": "prometheus" },
